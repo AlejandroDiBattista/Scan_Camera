@@ -8,6 +8,7 @@ import 'vision_detector_views/barcode_scanner_view.dart';
 import 'vision_detector_views/digital_ink_recognizer_view.dart';
 import 'vision_detector_views/face_detector_view.dart';
 import 'vision_detector_views/face_mesh_detector_view.dart';
+import 'vision_detector_views/full_scanner_view.dart';
 import 'vision_detector_views/label_detector_view.dart';
 import 'vision_detector_views/object_detector_view.dart';
 import 'vision_detector_views/pose_detector_view.dart';
@@ -25,7 +26,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Home(),
+      //home: Home(),
+      //home: BarcodeScannerView(),
+      home: FullScannerView(),
     );
   }
 }
@@ -49,12 +52,13 @@ class Home extends StatelessWidget {
                   ExpansionTile(
                     title: const Text('Vision APIs'),
                     children: [
+                      CustomCard('Full Scanning', FullScannerView()),
                       CustomCard('Barcode Scanning', BarcodeScannerView()),
+                      CustomCard('Text Recognition', TextRecognizerView()),
                       CustomCard('Face Detection', FaceDetectorView()),
                       CustomCard('Face Mesh Detection', FaceMeshDetectorView()),
                       CustomCard('Image Labeling', ImageLabelView()),
                       CustomCard('Object Detection', ObjectDetectorView()),
-                      CustomCard('Text Recognition', TextRecognizerView()),
                       CustomCard('Digital Ink Recognition', DigitalInkView()),
                       CustomCard('Pose Detection', PoseDetectorView()),
                       CustomCard('Selfie Segmentation', SelfieSegmenterView()),
@@ -67,8 +71,7 @@ class Home extends StatelessWidget {
                     title: const Text('Natural Language APIs'),
                     children: [
                       CustomCard('Language ID', LanguageIdentifierView()),
-                      CustomCard(
-                          'On-device Translation', LanguageTranslatorView()),
+                      CustomCard('On-device Translation', LanguageTranslatorView()),
                       CustomCard('Smart Reply', SmartReplyView()),
                       CustomCard('Entity Extraction', EntityExtractionView()),
                     ],
@@ -103,12 +106,10 @@ class CustomCard extends StatelessWidget {
         ),
         onTap: () {
           if (!featureCompleted) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content:
-                    const Text('This feature has not been implemented yet')));
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: const Text('This feature has not been implemented yet')));
           } else {
-            Navigator.push(
-                context, MaterialPageRoute(builder: (context) => _viewPage));
+            Navigator.push(context, MaterialPageRoute(builder: (context) => _viewPage));
           }
         },
       ),
