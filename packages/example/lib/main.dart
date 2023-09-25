@@ -29,6 +29,7 @@ class MyApp extends StatelessWidget {
       //home: Home(),
       //home: BarcodeScannerView(),
       home: FullScannerView(),
+      //home: FaceDetectorView(),
     );
   }
 }

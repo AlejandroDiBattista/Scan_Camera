@@ -44,11 +44,6 @@ Rect translateRect(Rect origen, Size canvasSize, Size imageSize, InputImageRotat
   return Rect.fromLTRB(left, top, right, bottom);
 }
 
-Offset locateRect(
-    Rect r, Size canvasSize, Size imageSize, InputImageRotation rotation, CameraLensDirection cameraLensDirection) {
-  return Offset(Platform.isAndroid && cameraLensDirection == CameraLensDirection.front ? r.right : r.left, r.top);
-}
-
 Offset translatePoint(Point origen, Size canvasSize, Size imageSize, InputImageRotation rotation,
     CameraLensDirection cameraLensDirection) {
   final x = translateX(origen.x.toDouble(), canvasSize, imageSize, rotation, cameraLensDirection);
@@ -56,7 +51,13 @@ Offset translatePoint(Point origen, Size canvasSize, Size imageSize, InputImageR
   return Offset(x, y);
 }
 
-Offset locatePoint(Offset o, Size canvasSize, Size imageSize, InputImageRotation rotation, CameraLensDirection cameraLensDirection) {
+Offset locateRect(
+    Rect r, Size canvasSize, Size imageSize, InputImageRotation rotation, CameraLensDirection cameraLensDirection) {
+  return Offset(Platform.isAndroid && cameraLensDirection == CameraLensDirection.front ? r.right : r.left, r.top);
+}
+
+Offset locatePoint(
+    Offset o, Size canvasSize, Size imageSize, InputImageRotation rotation, CameraLensDirection cameraLensDirection) {
   if (Platform.isAndroid) {
     o = switch (cameraLensDirection) {
       CameraLensDirection.front => switch (rotation) {

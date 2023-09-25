@@ -57,10 +57,9 @@ class _FullScannerViewState extends State<FullScannerView> {
     setState(() => _text = '');
 
     await _processBarcodeImage(inputImage);
-    // await _processTextImage(inputImage);
+    await _processTextImage(inputImage);
 
-    final painter = FullDetectorPainter(
-        barcodes, recognizedText, inputImage.metadata!.size, inputImage.metadata!.rotation, _cameraLensDirection);
+    final painter = FullDetectorPainter(barcodes, recognizedText, inputImage, _cameraLensDirection);
     _customPaint = CustomPaint(painter: painter);
 
     _isBusy = false;
@@ -76,14 +75,14 @@ class _FullScannerViewState extends State<FullScannerView> {
     if (barcodes.isNotEmpty) {
       for (final barcode in barcodes) {
         text += '- |${barcode.rawValue}| ${barcode.format}\n';
-        if (barcode.format == BarcodeFormat.qrCode) {
-          final c = await Cliente.cargar(barcode.rawValue!);
-          if (c != null) {
-            print('CLIENTE >>');
-            print('- $c');
-          }
+        if (barcode.format == BarcodeFormat.qrCode && barcode.rawValue != null) {
+          // final c = await Cliente.cargar(barcode.rawValue!);
+          // if (c != null) {
+          //   print('CLIENTE >>');
+          //   print('- $c');
+          // }
         }
-        if (barcode.format == BarcodeFormat.pdf417) {
+        if (barcode.format == BarcodeFormat.pdf417 && barcode.rawValue != null) {
           final u = Usuario.cargar(barcode.rawValue!);
           if (u != null) {
             print('USUARIO >>');

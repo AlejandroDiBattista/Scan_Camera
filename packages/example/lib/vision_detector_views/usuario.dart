@@ -19,8 +19,8 @@ class Usuario {
     final apellido = match.group(2)!;
     final sexo = match.group(4)!;
     final nacimiento = match.group(7)!;
-
-    return Usuario(dni, nombre, apellido, sexo, DateTime.parse(nacimiento));
+    final fecha = nacimiento.split('/').reversed.join('-');
+    return Usuario(dni, nombre, apellido, sexo, DateTime.parse(fecha));
   }
 
   @override

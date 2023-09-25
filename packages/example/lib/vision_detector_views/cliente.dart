@@ -14,7 +14,7 @@ class Cliente {
     // http://qr.afip.gob.ar/?qr=7gbG0UVlv3codO6nHiw1iA,,
     if (!url.startsWith('http://qr.afip.gob.ar')) return null;
 
-    print('Bajando $url');
+    print('Bajando [$url]');
 
     final webScraper = WebScraper('http://qr.afip.gob.ar');
     if (await webScraper.loadWebPage(url.replaceFirst('http://qr.afip.gob.ar', ''))) {

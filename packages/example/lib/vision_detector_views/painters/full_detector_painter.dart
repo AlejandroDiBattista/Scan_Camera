@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
 import 'dart:ui' as ui;
@@ -13,17 +12,18 @@ class FullDetectorPainter extends CustomPainter {
   FullDetectorPainter(
     this.barcodes,
     this.recognizedText,
-    this.imageSize,
-    this.rotation,
+    this.image,
     this.cameraLensDirection,
   );
 
   final List<Barcode> barcodes;
   final RecognizedText? recognizedText;
 
-  final Size imageSize;
-  final InputImageRotation rotation;
+  final InputImage image;
   final CameraLensDirection cameraLensDirection;
+
+  Size get imageSize => image.metadata!.size;
+  InputImageRotation get rotation => image.metadata!.rotation;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -56,31 +56,30 @@ class FullDetectorPainter extends CustomPainter {
 
     for (final textBlock in recognizedText!.blocks) {
       dibujarTexto(canvas, textBlock.text, textBlock.boundingBox);
-
-      final List<Offset> cornerPoints = <Offset>[];
-      for (final point in textBlock.cornerPoints) {
-        final o = ubicarPoint(point);
-        cornerPoints.add(ajustarPoint(o));
-      }
-
-      cornerPoints.add(cornerPoints.first);
-      canvas.drawPoints(PointMode.polygon, cornerPoints, colorTexto);
+      dibujarPoints(canvas, textBlock.cornerPoints, true);
     }
   }
 
   void paintBarcode(Canvas canvas) {
     for (final Barcode barcode in barcodes) {
       dibujarTexto(canvas, barcode.displayValue!, barcode.boundingBox);
-
-      final List<Offset> cornerPoints = <Offset>[];
-      for (final point in barcode.cornerPoints) {
-        final o = ubicarPoint(point);
-        //  cornerPoints.add(ajustarPoint(o));
-        cornerPoints.add(o);
-      }
-      cornerPoints.add(cornerPoints.first);
-      canvas.drawPoints(PointMode.polygon, cornerPoints, colorTexto);
+      dibujarPoints(canvas, barcode.cornerPoints, false);
     }
+  }
+
+  List<Offset> ubicarPuntos(List<Point<int>> points, [bool ajustar = false]) {
+    final List<Offset> salida = <Offset>[];
+    for (final point in points) {
+      var o = ubicarPoint(point);
+      if (ajustar) o = ajustarPoint(o);
+      salida.add(o);
+    }
+    salida.add(salida.first);
+    return salida;
+  }
+
+  void dibujarPoints(Canvas canvas, List<Point<int>> points, [bool ajustar = false]) {
+    canvas.drawPoints(PointMode.polygon, ubicarPuntos(points, ajustar), colorTexto);
   }
 
   void dibujarTexto(Canvas canvas, String texto, Rect origen) {
