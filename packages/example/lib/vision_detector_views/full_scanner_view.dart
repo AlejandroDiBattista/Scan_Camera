@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 
+import 'cliente.dart';
 import 'detector_view.dart';
 //import 'painters/barcode_detector_painter.dart';
 //import 'painters/detector_view.dart';
 import 'painters/full_detector_painter.dart';
+import 'usuario.dart';
 //import 'painters/painters/barcode_detector_painter.dart';
 //import 'painters/text_detector_painter.dart';
 
@@ -17,7 +19,6 @@ class FullScannerView extends StatefulWidget {
 
 class _FullScannerViewState extends State<FullScannerView> {
   final BarcodeScanner _barcodeScanner = BarcodeScanner();
-  //var _script = TextRecognitionScript.latin;
   final _textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
 
   bool _canProcess = true;
@@ -56,37 +57,52 @@ class _FullScannerViewState extends State<FullScannerView> {
     setState(() => _text = '');
 
     await _processBarcodeImage(inputImage);
-    await _processTextImage(inputImage);
+    // await _processTextImage(inputImage);
 
     final painter = FullDetectorPainter(
-        barcodes, recognizedText!, inputImage.metadata!.size, inputImage.metadata!.rotation, _cameraLensDirection);
+        barcodes, recognizedText, inputImage.metadata!.size, inputImage.metadata!.rotation, _cameraLensDirection);
     _customPaint = CustomPaint(painter: painter);
 
     _isBusy = false;
-    if (mounted) {
-      setState(() {});
-    }
+    if (!mounted) return;
+
+    setState(() {});
   }
 
   Future<void> _processBarcodeImage(InputImage inputImage) async {
     barcodes = await _barcodeScanner.processImage(inputImage);
-    if (inputImage.metadata?.size != null && inputImage.metadata?.rotation != null) {
-      // Crea diferido BarcodeDetectorPainter
-    } else {
-      String text = 'Barcodes found: ${barcodes.length}\n\n';
+
+    String text = 'Barcodes found: ${barcodes.length}\n';
+    if (barcodes.isNotEmpty) {
       for (final barcode in barcodes) {
-        text += 'Barcode: ${barcode.rawValue}\n\n';
+        text += '- |${barcode.rawValue}| ${barcode.format}\n';
+        if (barcode.format == BarcodeFormat.qrCode) {
+          final c = await Cliente.cargar(barcode.rawValue!);
+          if (c != null) {
+            print('CLIENTE >>');
+            print('- $c');
+          }
+        }
+        if (barcode.format == BarcodeFormat.pdf417) {
+          final u = Usuario.cargar(barcode.rawValue!);
+          if (u != null) {
+            print('USUARIO >>');
+            print('- $u');
+          }
+        }
       }
-      _text = text;
+
+      // print(text);
     }
+
+    if (inputImage.metadata?.size != null && inputImage.metadata?.rotation != null) return;
+
+    _text = text;
   }
 
   Future<void> _processTextImage(InputImage inputImage) async {
     recognizedText = await _textRecognizer.processImage(inputImage);
-    if (inputImage.metadata?.size != null && inputImage.metadata?.rotation != null) {
-      // Crea diferido TextDetectorPainter
-    } else {
-      _text = 'Recognized text:\n\n${recognizedText!.text}';
-    }
+    if (inputImage.metadata?.size != null && inputImage.metadata?.rotation != null) return;
+    _text = 'Recognized text:\n\n${recognizedText!.text}';
   }
 }

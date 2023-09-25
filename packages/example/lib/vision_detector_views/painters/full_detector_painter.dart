@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 import 'dart:ui';
 import 'dart:ui' as ui;
 
@@ -6,7 +7,6 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
-
 import 'coordinates_translator.dart';
 
 class FullDetectorPainter extends CustomPainter {
@@ -19,242 +19,17 @@ class FullDetectorPainter extends CustomPainter {
   );
 
   final List<Barcode> barcodes;
-  final RecognizedText recognizedText;
-  
+  final RecognizedText? recognizedText;
+
   final Size imageSize;
   final InputImageRotation rotation;
   final CameraLensDirection cameraLensDirection;
 
-  void paintText(Canvas canvas, Size size) {
-    final Paint paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.0
-      ..color = Colors.lightGreenAccent;
-
-    final Paint background = Paint()..color = Color(0x99000000);
-
-    for (final textBlock in recognizedText.blocks) {
-      final ParagraphBuilder builder = ParagraphBuilder(
-        ParagraphStyle(textAlign: TextAlign.left, fontSize: 16, textDirection: TextDirection.ltr),
-      );
-      builder.pushStyle(ui.TextStyle(color: Colors.lightGreenAccent, background: background));
-      builder.addText(textBlock.text);
-      builder.pop();
-
-      final left = translateX(
-        textBlock.boundingBox.left,
-        size,
-        imageSize,
-        rotation,
-        cameraLensDirection,
-      );
-      final top = translateY(
-        textBlock.boundingBox.top,
-        size,
-        imageSize,
-        rotation,
-        cameraLensDirection,
-      );
-      final right = translateX(
-        textBlock.boundingBox.right,
-        size,
-        imageSize,
-        rotation,
-        cameraLensDirection,
-      );
-      // final bottom = translateY(
-      //   textBlock.boundingBox.bottom,
-      //   size,
-      //   imageSize,
-      //   rotation,
-      //   cameraLensDirection,
-      // );
-      //
-      // canvas.drawRect(
-      //   Rect.fromLTRB(left, top, right, bottom),
-      //   paint,
-      // );
-
-      final List<Offset> cornerPoints = <Offset>[];
-      for (final point in textBlock.cornerPoints) {
-        double x = translateX(
-          point.x.toDouble(),
-          size,
-          imageSize,
-          rotation,
-          cameraLensDirection,
-        );
-        double y = translateY(
-          point.y.toDouble(),
-          size,
-          imageSize,
-          rotation,
-          cameraLensDirection,
-        );
-
-        if (Platform.isAndroid) {
-          switch (cameraLensDirection) {
-            case CameraLensDirection.front:
-              switch (rotation) {
-                case InputImageRotation.rotation0deg:
-                case InputImageRotation.rotation90deg:
-                  break;
-                case InputImageRotation.rotation180deg:
-                  x = size.width - x;
-                  y = size.height - y;
-                  break;
-                case InputImageRotation.rotation270deg:
-                  x = translateX(
-                    point.y.toDouble(),
-                    size,
-                    imageSize,
-                    rotation,
-                    cameraLensDirection,
-                  );
-                  y = size.height -
-                      translateY(
-                        point.x.toDouble(),
-                        size,
-                        imageSize,
-                        rotation,
-                        cameraLensDirection,
-                      );
-                  break;
-              }
-              break;
-            case CameraLensDirection.back:
-              switch (rotation) {
-                case InputImageRotation.rotation0deg:
-                case InputImageRotation.rotation270deg:
-                  break;
-                case InputImageRotation.rotation180deg:
-                  x = size.width - x;
-                  y = size.height - y;
-                  break;
-                case InputImageRotation.rotation90deg:
-                  x = size.width -
-                      translateX(
-                        point.y.toDouble(),
-                        size,
-                        imageSize,
-                        rotation,
-                        cameraLensDirection,
-                      );
-                  y = translateY(
-                    point.x.toDouble(),
-                    size,
-                    imageSize,
-                    rotation,
-                    cameraLensDirection,
-                  );
-                  break;
-              }
-              break;
-            case CameraLensDirection.external:
-              break;
-          }
-        }
-
-        cornerPoints.add(Offset(x, y));
-      }
-
-      // Add the first point to close the polygon
-      cornerPoints.add(cornerPoints.first);
-      canvas.drawPoints(PointMode.polygon, cornerPoints, paint);
-
-      canvas.drawParagraph(
-        builder.build()
-          ..layout(ParagraphConstraints(
-            width: (right - left).abs(),
-          )),
-        Offset(Platform.isAndroid && cameraLensDirection == CameraLensDirection.front ? right : left, top),
-      );
-    }
-  }
-
-  void paintBarcode(Canvas canvas, Size size) {
-    final Paint paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.0
-      ..color = Colors.lightGreenAccent;
-
-    final Paint background = Paint()..color = Color(0x99000000);
-
-    for (final Barcode barcode in barcodes) {
-      final ParagraphBuilder builder = ParagraphBuilder(
-        ParagraphStyle(textAlign: TextAlign.left, fontSize: 16, textDirection: TextDirection.ltr),
-      );
-      builder.pushStyle(ui.TextStyle(color: Colors.lightGreenAccent, background: background));
-      builder.addText('${barcode.displayValue}');
-      builder.pop();
-
-      final left = translateX(
-        barcode.boundingBox.left,
-        size,
-        imageSize,
-        rotation,
-        cameraLensDirection,
-      );
-      final top = translateY(
-        barcode.boundingBox.top,
-        size,
-        imageSize,
-        rotation,
-        cameraLensDirection,
-      );
-      final right = translateX(
-        barcode.boundingBox.right,
-        size,
-        imageSize,
-        rotation,
-        cameraLensDirection,
-      );
-      // final bottom = translateY(
-      //   barcode.boundingBox.bottom,
-      //   size,
-      //   imageSize,
-      //   rotation,
-      //   cameraLensDirection,
-      // );
-      //
-      // // Draw a bounding rectangle around the barcode
-      // canvas.drawRect(
-      //   Rect.fromLTRB(left, top, right, bottom),
-      //   paint,
-      // );
-
-      final List<Offset> cornerPoints = <Offset>[];
-      for (final point in barcode.cornerPoints) {
-        final double x = translateX(
-          point.x.toDouble(),
-          size,
-          imageSize,
-          rotation,
-          cameraLensDirection,
-        );
-        final double y = translateY(
-          point.y.toDouble(),
-          size,
-          imageSize,
-          rotation,
-          cameraLensDirection,
-        );
-
-        cornerPoints.add(Offset(x, y));
-      }
-
-      // Add the first point to close the polygon
-      cornerPoints.add(cornerPoints.first);
-      canvas.drawPoints(PointMode.polygon, cornerPoints, paint);
-
-      canvas.drawParagraph(
-        builder.build()
-          ..layout(ParagraphConstraints(
-            width: (right - left).abs(),
-          )),
-        Offset(Platform.isAndroid && cameraLensDirection == CameraLensDirection.front ? right : left, top),
-      );
-    }
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvasSize = size;
+    paintBarcode(canvas);
+    paintText(canvas);
   }
 
   @override
@@ -262,9 +37,59 @@ class FullDetectorPainter extends CustomPainter {
     return oldDelegate.imageSize != imageSize || oldDelegate.barcodes != barcodes;
   }
 
-  @override
-  void paint(Canvas canvas, Size size) {
-    paintBarcode(canvas, size);
-    paintText(canvas, size);
+  Size canvasSize = Size.zero;
+
+  Rect moverRect(Rect origen) => translateRect(origen, canvasSize, imageSize, rotation, cameraLensDirection);
+  Offset ubicarRect(Rect r) => locateRect(r, canvasSize, imageSize, rotation, cameraLensDirection);
+  Offset ubicarPoint(Point o) => translatePoint(o, canvasSize, imageSize, rotation, cameraLensDirection);
+  Offset ajustarPoint(Offset o) => locatePoint(o, canvasSize, imageSize, rotation, cameraLensDirection);
+
+  final colorTexto = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 3.0
+    ..color = Colors.lightGreenAccent;
+
+  final colorFondo = Paint()..color = Color(0x99000000);
+
+  void paintText(Canvas canvas) {
+    if (recognizedText == null) return;
+
+    for (final textBlock in recognizedText!.blocks) {
+      dibujarTexto(canvas, textBlock.text, textBlock.boundingBox);
+
+      final List<Offset> cornerPoints = <Offset>[];
+      for (final point in textBlock.cornerPoints) {
+        final o = ubicarPoint(point);
+        cornerPoints.add(ajustarPoint(o));
+      }
+
+      cornerPoints.add(cornerPoints.first);
+      canvas.drawPoints(PointMode.polygon, cornerPoints, colorTexto);
+    }
+  }
+
+  void paintBarcode(Canvas canvas) {
+    for (final Barcode barcode in barcodes) {
+      dibujarTexto(canvas, barcode.displayValue!, barcode.boundingBox);
+
+      final List<Offset> cornerPoints = <Offset>[];
+      for (final point in barcode.cornerPoints) {
+        final o = ubicarPoint(point);
+        //  cornerPoints.add(ajustarPoint(o));
+        cornerPoints.add(o);
+      }
+      cornerPoints.add(cornerPoints.first);
+      canvas.drawPoints(PointMode.polygon, cornerPoints, colorTexto);
+    }
+  }
+
+  void dibujarTexto(Canvas canvas, String texto, Rect origen) {
+    final ParagraphBuilder builder = ParagraphBuilder(ParagraphStyle(textAlign: TextAlign.left, fontSize: 12));
+    builder.pushStyle(ui.TextStyle(color: colorTexto.color, background: colorFondo));
+    builder.addText(texto);
+    builder.pop();
+
+    final r = moverRect(origen);
+    canvas.drawParagraph(builder.build()..layout(ParagraphConstraints(width: (r.right - r.left).abs())), ubicarRect(r));
   }
 }
