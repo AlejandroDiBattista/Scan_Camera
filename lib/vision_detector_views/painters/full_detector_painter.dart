@@ -4,18 +4,13 @@ import 'dart:ui' as ui;
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:google_ml_kit/google_ml_kit.dart';
 import 'coordinates_translator.dart';
 
 class FullDetectorPainter extends CustomPainter {
-  FullDetectorPainter(
-    this.barcodes,
-    this.recognizedText,
-    this.image,
-    this.cameraLensDirection,
-  );
+  FullDetectorPainter(this.barcodes, this.recognizedText, this.faces, this.image, this.cameraLensDirection);
 
+  final List<Face> faces;
   final List<Barcode> barcodes;
   final RecognizedText? recognizedText;
 
@@ -30,6 +25,7 @@ class FullDetectorPainter extends CustomPainter {
     canvasSize = size;
     paintBarcode(canvas);
     paintText(canvas);
+    paintFaces(canvas);
   }
 
   @override
@@ -44,10 +40,20 @@ class FullDetectorPainter extends CustomPainter {
   Offset ubicarPoint(Point o) => translatePoint(o, canvasSize, imageSize, rotation, cameraLensDirection);
   Offset ajustarPoint(Offset o) => locatePoint(o, canvasSize, imageSize, rotation, cameraLensDirection);
 
+  List<Offset> ubicarPuntos(List<Point<int>> points, [bool ajustar = false]) =>
+      locatePoints(points, ajustar, canvasSize, imageSize, rotation, cameraLensDirection);
+
   final colorTexto = Paint()
     ..style = PaintingStyle.stroke
-    ..strokeWidth = 3.0
-    ..color = Colors.lightGreenAccent;
+    ..strokeWidth = 1.0
+    ..strokeCap = StrokeCap.round
+    ..color = Colors.yellow;
+
+  final colorMarco = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 1.0
+    ..strokeCap = StrokeCap.round
+    ..color = Colors.red;
 
   final colorFondo = Paint()..color = Color(0x99000000);
 
@@ -67,28 +73,42 @@ class FullDetectorPainter extends CustomPainter {
     }
   }
 
-  List<Offset> ubicarPuntos(List<Point<int>> points, [bool ajustar = false]) {
-    final List<Offset> salida = <Offset>[];
-    for (final point in points) {
-      var o = ubicarPoint(point);
-      if (ajustar) o = ajustarPoint(o);
-      salida.add(o);
-    }
-    salida.add(salida.first);
-    return salida;
-  }
-
   void dibujarPoints(Canvas canvas, List<Point<int>> points, [bool ajustar = false]) {
-    canvas.drawPoints(PointMode.polygon, ubicarPuntos(points, ajustar), colorTexto);
+    canvas.drawPoints(PointMode.polygon, ubicarPuntos(points, ajustar), colorMarco);
   }
 
   void dibujarTexto(Canvas canvas, String texto, Rect origen) {
-    final ParagraphBuilder builder = ParagraphBuilder(ParagraphStyle(textAlign: TextAlign.left, fontSize: 12));
+    final ParagraphBuilder builder = ParagraphBuilder(ParagraphStyle(textAlign: TextAlign.left, fontSize: 8));
     builder.pushStyle(ui.TextStyle(color: colorTexto.color, background: colorFondo));
     builder.addText(texto);
     builder.pop();
 
     final r = moverRect(origen);
     canvas.drawParagraph(builder.build()..layout(ParagraphConstraints(width: (r.right - r.left).abs())), ubicarRect(r));
+  }
+
+  void paintFaces(Canvas canvas) {
+    for (final Face face in faces) {
+      final r = translateRect(face.boundingBox, canvasSize, imageSize, rotation, cameraLensDirection);
+      canvas.drawRect(r, colorTexto);
+
+      for (final type in FaceContourType.values) {
+        final contour = face.contours[type];
+        if (contour?.points != null) {
+          for (final Point point in contour!.points) {
+            final p = translatePoint(point, canvasSize, imageSize, rotation, cameraLensDirection);
+            canvas.drawCircle(p, 1, colorTexto);
+          }
+        }
+      }
+
+      for (final type in FaceLandmarkType.values) {
+        final landmark = face.landmarks[type];
+        if (landmark?.position != null) {
+          final p = translatePoint(landmark!.position, canvasSize, imageSize, rotation, cameraLensDirection);
+          canvas.drawCircle(p, 2, colorFondo);
+        }
+      }
+    }
   }
 }

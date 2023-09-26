@@ -17,7 +17,6 @@ class _ObjectDetectorView extends State<ObjectDetectorView> {
   bool _canProcess = false;
   bool _isBusy = false;
   CustomPaint? _customPaint;
-  String? _text;
   var _cameraLensDirection = CameraLensDirection.back;
   int _option = 0;
   final _options = {
@@ -56,7 +55,6 @@ class _ObjectDetectorView extends State<ObjectDetectorView> {
         DetectorView(
           title: 'Object Detector',
           customPaint: _customPaint,
-          text: _text,
           onImage: _processImage,
           initialCameraLensDirection: _cameraLensDirection,
           onCameraLensDirectionChanged: (value) => _cameraLensDirection = value,
@@ -178,9 +176,6 @@ class _ObjectDetectorView extends State<ObjectDetectorView> {
     if (!_canProcess) return;
     if (_isBusy) return;
     _isBusy = true;
-    setState(() {
-      _text = '';
-    });
     final objects = await _objectDetector!.processImage(inputImage);
     // print('Objects found: ${objects.length}\n\n');
     if (inputImage.metadata?.size != null &&
@@ -193,13 +188,6 @@ class _ObjectDetectorView extends State<ObjectDetectorView> {
       );
       _customPaint = CustomPaint(painter: painter);
     } else {
-      String text = 'Objects found: ${objects.length}\n\n';
-      for (final object in objects) {
-        text +=
-            'Object:  trackingId: ${object.trackingId} - ${object.labels.map((e) => e.text)}\n\n';
-      }
-      _text = text;
-      // TODO: set _customPaint to draw boundingRect on top of image
       _customPaint = null;
     }
     _isBusy = false;

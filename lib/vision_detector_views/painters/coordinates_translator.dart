@@ -75,3 +75,15 @@ Offset locatePoint(
   }
   return Offset(o.dx, o.dy);
 }
+
+List<Offset> locatePoints(List<Point<int>> points, bool ajustar, Size canvasSize, Size imageSize,
+    InputImageRotation rotation, CameraLensDirection cameraLensDirection) {
+  final List<Offset> salida = <Offset>[];
+  for (final point in points) {
+    var o = translatePoint(point, canvasSize, imageSize, rotation, cameraLensDirection);
+    if (ajustar) o = locatePoint(o, canvasSize, imageSize, rotation, cameraLensDirection);
+    salida.add(o);
+  }
+  salida.add(salida.first);
+  return salida;
+}

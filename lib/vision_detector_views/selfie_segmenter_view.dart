@@ -18,7 +18,6 @@ class _SelfieSegmenterViewState extends State<SelfieSegmenterView> {
   bool _canProcess = true;
   bool _isBusy = false;
   CustomPaint? _customPaint;
-  String? _text;
   var _cameraLensDirection = CameraLensDirection.front;
 
   @override
@@ -33,7 +32,6 @@ class _SelfieSegmenterViewState extends State<SelfieSegmenterView> {
     return DetectorView(
       title: 'Selfie Segmenter',
       customPaint: _customPaint,
-      text: _text,
       onImage: _processImage,
       initialCameraLensDirection: _cameraLensDirection,
       onCameraLensDirectionChanged: (value) => _cameraLensDirection = value,
@@ -44,9 +42,6 @@ class _SelfieSegmenterViewState extends State<SelfieSegmenterView> {
     if (!_canProcess) return;
     if (_isBusy) return;
     _isBusy = true;
-    setState(() {
-      _text = '';
-    });
     final mask = await _segmenter.processImage(inputImage);
     if (inputImage.metadata?.size != null &&
         inputImage.metadata?.rotation != null &&
@@ -60,9 +55,6 @@ class _SelfieSegmenterViewState extends State<SelfieSegmenterView> {
       );
       _customPaint = CustomPaint(painter: painter);
     } else {
-      // TODO: set _customPaint to draw on top of image
-      _text =
-          'There is a mask with ${(mask?.confidences ?? []).where((element) => element > 0.8).length} elements';
       _customPaint = null;
     }
     _isBusy = false;

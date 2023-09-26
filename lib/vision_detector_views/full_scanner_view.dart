@@ -1,16 +1,12 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:google_ml_kit/google_ml_kit.dart';
+import 'package:google_ml_kit_example/vision_detector_views/cliente.dart';
+import 'package:google_ml_kit_example/vision_detector_views/painters/face_detector_painter.dart';
 
-import 'cliente.dart';
-import 'detector_view.dart';
-//import 'painters/barcode_detector_painter.dart';
-//import 'painters/detector_view.dart';
 import 'painters/full_detector_painter.dart';
+import 'detector_view.dart';
 import 'usuario.dart';
-//import 'painters/painters/barcode_detector_painter.dart';
-//import 'painters/text_detector_painter.dart';
 
 class FullScannerView extends StatefulWidget {
   @override
@@ -18,14 +14,14 @@ class FullScannerView extends StatefulWidget {
 }
 
 class _FullScannerViewState extends State<FullScannerView> {
-  final BarcodeScanner _barcodeScanner = BarcodeScanner();
+  final _barcodeScanner = BarcodeScanner();
   final _textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
+  final _faceDetector = FaceDetector(options: FaceDetectorOptions(enableContours: true, enableLandmarks: true));
 
   bool _canProcess = true;
   bool _isBusy = false;
   CustomPaint? _customPaint;
 
-  String? _text;
   var _cameraLensDirection = CameraLensDirection.back;
 
   @override
@@ -40,7 +36,6 @@ class _FullScannerViewState extends State<FullScannerView> {
     return DetectorView(
       title: 'Full Scanner',
       customPaint: _customPaint,
-      text: _text,
       onImage: _processImage,
       initialCameraLensDirection: _cameraLensDirection,
       onCameraLensDirectionChanged: (value) => _cameraLensDirection = value,
@@ -49,17 +44,18 @@ class _FullScannerViewState extends State<FullScannerView> {
 
   List<Barcode> barcodes = [];
   RecognizedText? recognizedText;
+  List<Face> faces = [];
 
   Future<void> _processImage(InputImage inputImage) async {
     if (!_canProcess) return;
     if (_isBusy) return;
     _isBusy = true;
-    setState(() => _text = '');
 
     await _processBarcodeImage(inputImage);
-    await _processTextImage(inputImage);
+    // await _processTextImage(inputImage);
+    // await _processFace(inputImage);
 
-    final painter = FullDetectorPainter(barcodes, recognizedText, inputImage, _cameraLensDirection);
+    final painter = FullDetectorPainter(barcodes, recognizedText, faces, inputImage, _cameraLensDirection);
     _customPaint = CustomPaint(painter: painter);
 
     _isBusy = false;
@@ -71,16 +67,15 @@ class _FullScannerViewState extends State<FullScannerView> {
   Future<void> _processBarcodeImage(InputImage inputImage) async {
     barcodes = await _barcodeScanner.processImage(inputImage);
 
-    String text = 'Barcodes found: ${barcodes.length}\n';
     if (barcodes.isNotEmpty) {
       for (final barcode in barcodes) {
-        text += '- |${barcode.rawValue}| ${barcode.format}\n';
+        print('- |${barcode.rawValue}| ${barcode.format}\n');
         if (barcode.format == BarcodeFormat.qrCode && barcode.rawValue != null) {
-          // final c = await Cliente.cargar(barcode.rawValue!);
-          // if (c != null) {
-          //   print('CLIENTE >>');
-          //   print('- $c');
-          // }
+          final c = await Cliente.cargar(barcode.rawValue!);
+          if (c != null) {
+            print('CLIENTE >>');
+            print('- $c');
+          }
         }
         if (barcode.format == BarcodeFormat.pdf417 && barcode.rawValue != null) {
           final u = Usuario.cargar(barcode.rawValue!);
@@ -90,18 +85,28 @@ class _FullScannerViewState extends State<FullScannerView> {
           }
         }
       }
-
-      // print(text);
     }
 
     if (inputImage.metadata?.size != null && inputImage.metadata?.rotation != null) return;
-
-    _text = text;
   }
 
   Future<void> _processTextImage(InputImage inputImage) async {
     recognizedText = await _textRecognizer.processImage(inputImage);
     if (inputImage.metadata?.size != null && inputImage.metadata?.rotation != null) return;
-    _text = 'Recognized text:\n\n${recognizedText!.text}';
+  }
+
+  Future<void> _processFace(InputImage inputImage) async {
+    final faces = await _faceDetector.processImage(inputImage);
+    if (inputImage.metadata?.size != null && inputImage.metadata?.rotation != null) {
+      final painter = FaceDetectorPainter(
+        faces,
+        inputImage.metadata!.size,
+        inputImage.metadata!.rotation,
+        _cameraLensDirection,
+      );
+      _customPaint = CustomPaint(painter: painter);
+    } else {
+      _customPaint = null;
+    }
   }
 }

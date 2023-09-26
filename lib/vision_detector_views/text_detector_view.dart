@@ -16,7 +16,6 @@ class _TextRecognizerViewState extends State<TextRecognizerView> {
   bool _canProcess = true;
   bool _isBusy = false;
   CustomPaint? _customPaint;
-  String? _text;
   var _cameraLensDirection = CameraLensDirection.back;
 
   @override
@@ -33,7 +32,6 @@ class _TextRecognizerViewState extends State<TextRecognizerView> {
         DetectorView(
           title: 'Text Detector',
           customPaint: _customPaint,
-          text: _text,
           onImage: _processImage,
           initialCameraLensDirection: _cameraLensDirection,
           onCameraLensDirectionChanged: (value) => _cameraLensDirection = value,
@@ -93,7 +91,6 @@ class _TextRecognizerViewState extends State<TextRecognizerView> {
     if (_isBusy) return;
     _isBusy = true;
     setState(() {
-      _text = '';
     });
     final recognizedText = await _textRecognizer.processImage(inputImage);
     if (inputImage.metadata?.size != null &&
@@ -106,8 +103,6 @@ class _TextRecognizerViewState extends State<TextRecognizerView> {
       );
       _customPaint = CustomPaint(painter: painter);
     } else {
-      _text = 'Recognized text:\n\n${recognizedText.text}';
-      // TODO: set _customPaint to draw boundingRect on top of image
       _customPaint = null;
     }
     _isBusy = false;

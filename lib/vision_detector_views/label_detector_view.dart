@@ -15,7 +15,6 @@ class _ImageLabelViewState extends State<ImageLabelView> {
   bool _canProcess = false;
   bool _isBusy = false;
   CustomPaint? _customPaint;
-  String? _text;
 
   @override
   void initState() {
@@ -36,7 +35,6 @@ class _ImageLabelViewState extends State<ImageLabelView> {
     return DetectorView(
       title: 'Image Labeler',
       customPaint: _customPaint,
-      text: _text,
       onImage: _processImage,
     );
   }
@@ -71,21 +69,12 @@ class _ImageLabelViewState extends State<ImageLabelView> {
     if (!_canProcess) return;
     if (_isBusy) return;
     _isBusy = true;
-    setState(() {
-      _text = '';
-    });
     final labels = await _imageLabeler.processImage(inputImage);
     if (inputImage.metadata?.size != null &&
         inputImage.metadata?.rotation != null) {
       final painter = LabelDetectorPainter(labels);
       _customPaint = CustomPaint(painter: painter);
     } else {
-      String text = 'Labels found: ${labels.length}\n\n';
-      for (final label in labels) {
-        text += 'Label: ${label.label}, '
-            'Confidence: ${label.confidence.toStringAsFixed(2)}\n\n';
-      }
-      _text = text;
       _customPaint = null;
     }
     _isBusy = false;

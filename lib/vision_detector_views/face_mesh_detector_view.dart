@@ -18,7 +18,6 @@ class _FaceMeshDetectorViewState extends State<FaceMeshDetectorView> {
   bool _canProcess = true;
   bool _isBusy = false;
   CustomPaint? _customPaint;
-  String? _text;
   var _cameraLensDirection = CameraLensDirection.front;
 
   @override
@@ -43,7 +42,6 @@ class _FaceMeshDetectorViewState extends State<FaceMeshDetectorView> {
     return DetectorView(
       title: 'Face Mesh Detector',
       customPaint: _customPaint,
-      text: _text,
       onImage: _processImage,
       initialCameraLensDirection: _cameraLensDirection,
       onCameraLensDirectionChanged: (value) => _cameraLensDirection = value,
@@ -54,9 +52,6 @@ class _FaceMeshDetectorViewState extends State<FaceMeshDetectorView> {
     if (!_canProcess) return;
     if (_isBusy) return;
     _isBusy = true;
-    setState(() {
-      _text = '';
-    });
     final meshes = await _meshDetector.processImage(inputImage);
     if (inputImage.metadata?.size != null &&
         inputImage.metadata?.rotation != null) {
@@ -68,12 +63,6 @@ class _FaceMeshDetectorViewState extends State<FaceMeshDetectorView> {
       );
       _customPaint = CustomPaint(painter: painter);
     } else {
-      String text = 'Face meshes found: ${meshes.length}\n\n';
-      for (final mesh in meshes) {
-        text += 'face: ${mesh.boundingBox}\n\n';
-      }
-      _text = text;
-      // TODO: set _customPaint to draw boundingRect on top of image
       _customPaint = null;
     }
     _isBusy = false;

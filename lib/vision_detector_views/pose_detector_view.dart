@@ -17,7 +17,6 @@ class _PoseDetectorViewState extends State<PoseDetectorView> {
   bool _canProcess = true;
   bool _isBusy = false;
   CustomPaint? _customPaint;
-  String? _text;
   var _cameraLensDirection = CameraLensDirection.back;
 
   @override
@@ -32,7 +31,6 @@ class _PoseDetectorViewState extends State<PoseDetectorView> {
     return DetectorView(
       title: 'Pose Detector',
       customPaint: _customPaint,
-      text: _text,
       onImage: _processImage,
       initialCameraLensDirection: _cameraLensDirection,
       onCameraLensDirectionChanged: (value) => _cameraLensDirection = value,
@@ -43,9 +41,6 @@ class _PoseDetectorViewState extends State<PoseDetectorView> {
     if (!_canProcess) return;
     if (_isBusy) return;
     _isBusy = true;
-    setState(() {
-      _text = '';
-    });
     final poses = await _poseDetector.processImage(inputImage);
     if (inputImage.metadata?.size != null &&
         inputImage.metadata?.rotation != null) {
@@ -57,8 +52,6 @@ class _PoseDetectorViewState extends State<PoseDetectorView> {
       );
       _customPaint = CustomPaint(painter: painter);
     } else {
-      _text = 'Poses found: ${poses.length}\n\n';
-      // TODO: set _customPaint to draw landmarks on top of image
       _customPaint = null;
     }
     _isBusy = false;
