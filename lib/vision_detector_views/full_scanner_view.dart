@@ -1,12 +1,11 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
-import 'package:google_ml_kit_example/vision_detector_views/cliente.dart';
-import 'package:google_ml_kit_example/vision_detector_views/painters/face_detector_painter.dart';
+import 'package:google_ml_kit_example/modelo/cliente.dart';
 
 import 'painters/full_detector_painter.dart';
 import 'detector_view.dart';
-import 'usuario.dart';
+import '../modelo/usuario.dart';
 
 class FullScannerView extends StatefulWidget {
   @override
@@ -52,7 +51,7 @@ class _FullScannerViewState extends State<FullScannerView> {
     _isBusy = true;
 
     await _processBarcodeImage(inputImage);
-    // await _processTextImage(inputImage);
+    await _processTextImage(inputImage);
     // await _processFace(inputImage);
 
     final painter = FullDetectorPainter(barcodes, recognizedText, faces, inputImage, _cameraLensDirection);
@@ -87,26 +86,13 @@ class _FullScannerViewState extends State<FullScannerView> {
       }
     }
 
-    if (inputImage.metadata?.size != null && inputImage.metadata?.rotation != null) return;
   }
 
   Future<void> _processTextImage(InputImage inputImage) async {
     recognizedText = await _textRecognizer.processImage(inputImage);
-    if (inputImage.metadata?.size != null && inputImage.metadata?.rotation != null) return;
   }
 
   Future<void> _processFace(InputImage inputImage) async {
-    final faces = await _faceDetector.processImage(inputImage);
-    if (inputImage.metadata?.size != null && inputImage.metadata?.rotation != null) {
-      final painter = FaceDetectorPainter(
-        faces,
-        inputImage.metadata!.size,
-        inputImage.metadata!.rotation,
-        _cameraLensDirection,
-      );
-      _customPaint = CustomPaint(painter: painter);
-    } else {
-      _customPaint = null;
-    }
+    faces = await _faceDetector.processImage(inputImage);
   }
 }

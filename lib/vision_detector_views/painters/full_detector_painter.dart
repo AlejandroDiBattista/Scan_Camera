@@ -91,24 +91,24 @@ class FullDetectorPainter extends CustomPainter {
     for (final Face face in faces) {
       final r = translateRect(face.boundingBox, canvasSize, imageSize, rotation, cameraLensDirection);
       canvas.drawRect(r, colorTexto);
+      print("- $r");
+      // for (final type in FaceContourType.values) {
+      //   final contour = face.contours[type];
+      //   if (contour?.points != null) {
+      //     for (final Point point in contour!.points) {
+      //       final p = translatePoint(point, canvasSize, imageSize, rotation, cameraLensDirection);
+      //       canvas.drawCircle(p, 1, colorTexto);
+      //     }
+      //   }
+      // }
 
-      for (final type in FaceContourType.values) {
-        final contour = face.contours[type];
-        if (contour?.points != null) {
-          for (final Point point in contour!.points) {
-            final p = translatePoint(point, canvasSize, imageSize, rotation, cameraLensDirection);
-            canvas.drawCircle(p, 1, colorTexto);
-          }
-        }
-      }
-
-      for (final type in FaceLandmarkType.values) {
-        final landmark = face.landmarks[type];
-        if (landmark?.position != null) {
-          final p = translatePoint(landmark!.position, canvasSize, imageSize, rotation, cameraLensDirection);
-          canvas.drawCircle(p, 2, colorFondo);
-        }
-      }
+      // for (final type in FaceLandmarkType.values) {
+      //   final landmark = face.landmarks[type];
+      //   if (landmark?.position != null) {
+      //     final p = translatePoint(landmark!.position, canvasSize, imageSize, rotation, cameraLensDirection);
+      //     canvas.drawCircle(p, 2, colorFondo);
+      //   }
+      // }
     }
   }
 }

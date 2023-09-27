@@ -46,7 +46,6 @@ class _SelfieSegmenterViewState extends State<SelfieSegmenterView> {
     if (inputImage.metadata?.size != null &&
         inputImage.metadata?.rotation != null &&
         mask != null) {
-      // TODO: Fix SegmentationPainter to rescale on top of camera feed.
       final painter = SegmentationPainter(
         mask,
         inputImage.metadata!.size,
