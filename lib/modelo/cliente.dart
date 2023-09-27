@@ -1,53 +1,99 @@
-import 'package:web_scraper/web_scraper.dart';
+import 'dart:convert';
 
 class Cliente {
-  String cuit;
+  int cuenta;
+  String dni;
+  String apellido;
   String nombre;
-  String domicilio;
+  String telefono;
+  DateTime nacimiento;
+  String sexo;
 
-  Cliente(this.cuit, this.nombre, this.domicilio);
+  Cliente({
+    required this.cuenta,
+    required this.dni,
+    required this.apellido,
+    required this.nombre,
+    required this.telefono,
+    required this.nacimiento,
+    required this.sexo,
+  });
+
+  Cliente copyWith({
+    int? cuenta,
+    String? dni,
+    String? apellido,
+    String? nombre,
+    String? telefono,
+    DateTime? nacimiento,
+    String? sexo,
+  }) {
+    return Cliente(
+      cuenta: cuenta ?? this.cuenta,
+      dni: dni ?? this.dni,
+      apellido: apellido ?? this.apellido,
+      nombre: nombre ?? this.nombre,
+      telefono: telefono ?? this.telefono,
+      nacimiento: nacimiento ?? this.nacimiento,
+      sexo: sexo ?? this.sexo,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'cuenta': cuenta,
+      'dni': dni,
+      'apellido': apellido,
+      'nombre': nombre,
+      'telefono': telefono,
+      'nacimiento': nacimiento.millisecondsSinceEpoch,
+      'sexo': sexo,
+    };
+  }
+
+  factory Cliente.fromMap(Map<String, dynamic> map) {
+    return Cliente(
+      cuenta: map['cuenta']?.toInt() ?? 0,
+      dni: map['dni'] ?? '',
+      apellido: map['apellido'] ?? '',
+      nombre: map['nombre'] ?? '',
+      telefono: map['telefono'] ?? '',
+      nacimiento: DateTime.fromMillisecondsSinceEpoch(map['nacimiento']),
+      sexo: map['sexo'] ?? '',
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory Cliente.fromJson(String source) => Cliente.fromMap(json.decode(source));
 
   @override
-  String toString() => 'Cliente($cuit, $nombre, $domicilio)';
-
-  static Future<Cliente?> cargar(String url) async {
-    // http://qr.afip.gob.ar/?qr=7gbG0UVlv3codO6nHiw1iA,,
-    if (!url.startsWith('http://qr.afip.gob.ar')) return null;
-
-    print('Bajando [$url]');
-    final a = 'http://qr.afip.gob.ar';
-    final b = '?qr=7gbG0UVlv3codO6nHiw1iA,,';
-
-    // final webScraper = WebScraper('http://qr.afip.gob.ar');
-    final webScraper = WebScraper(a);
-    // if (await webScraper.loadWebPage(url.replaceFirst('http://qr.afip.gob.ar', ''))) {
-    print("Ya conecté la pagina");
-    final wp = await webScraper.loadWebPage(b);
-    print("Ya bajé la página");
-
-    if (wp) {
-      final t = webScraper.getPageContent();
-      print("Estoy buscando > ${t.length} > ${t.contains("33501576269")}");
-      print("Estoy buscando > ${t.length} > ${t.contains("Sin guiones ni espacios")}");
-      final inputCuit = webScraper.getElement('input#tbCUIT', ['value']);
-      final textareaDenominacion = webScraper.getElement('textarea#taDenominacion', []);
-      final selectDomicilios = webScraper.getElement('select#ddlDomicilios > option[selected]', []);
-
-      final cuit = inputCuit[0]['attributes']['value'] ?? '';
-      final denominacion = textareaDenominacion[0]['title'] ?? '';
-      final domicilio = selectDomicilios[0]['title'] ?? '';
-      return Cliente(cuit, denominacion, domicilio);
-    } else {
-      return null;
-    }
+  String toString() {
+    return 'Cliente(cuenta: $cuenta, dni: $dni, apellido: $apellido, nombre: $nombre, telefono: $telefono, nacimiento: $nacimiento, sexo: $sexo)';
   }
-}
 
-void main() async {
-  try {
-    final u = await Cliente.cargar("http://qr.afip.gob.ar/?qr=7gbG0UVlv3codO6nHiw1iA,,");
-    print("$u");
-  } catch (e) {
-    print("Error: $e");
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is Cliente &&
+        other.cuenta == cuenta &&
+        other.dni == dni &&
+        other.apellido == apellido &&
+        other.nombre == nombre &&
+        other.telefono == telefono &&
+        other.nacimiento == nacimiento &&
+        other.sexo == sexo;
+  }
+
+  @override
+  int get hashCode {
+    return cuenta.hashCode ^
+        dni.hashCode ^
+        apellido.hashCode ^
+        nombre.hashCode ^
+        telefono.hashCode ^
+        nacimiento.hashCode ^
+        sexo.hashCode;
   }
 }

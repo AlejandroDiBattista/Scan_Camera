@@ -5,68 +5,57 @@ import 'package:beautiful_soup_dart/beautiful_soup.dart';
 
 // import 'dart:io';
 
-// Define la URL del QR
-Future<void> probar() async {
-  String qr_url = 'https://serviciosweb.afip.gob.ar/clavefiscal/qr/response.aspx?qr=7gbG0UVlv3codO6nHiw1iA,,';
+const url1 = 'http://qr.afip.gob.ar/?qr=7gbG0UVlv3codO6nHiw1iA,,';
+const url2 = 'https://serviciosweb.afip.gob.ar/clavefiscal/qr/response.aspx?qr=7gbG0UVlv3codO6nHiw1iA,,';
+const url3 = "https://servicioscf.afip.gob.ar/publico/denuncias/denunciaCD.aspx/BuscarCUIT";
+const cuit = '33501576269';
 
-// Hace una solicitud HTTP a la URL del QR y obtiene el código HTML de la página web
-  final response = await http.get(Uri.parse(qr_url));
+Future<void> traerBS() async {
+  print("\n traerBS \n");
+  String url = url2;
+
+  final response = await http.get(Uri.parse(url));
   String html = response.body;
 
-  // Crea un objeto BeautifulSoup para analizar el código HTML
   var soup = BeautifulSoup(html);
-
-  // Busca el elemento que contiene el CUIT del emisor
   var cuit_element = soup.find('input', id: 'tbCUIT');
-
-  // Extrae el texto del elemento y lo guarda en una variable
   print(cuit_element);
-  String cuit = cuit_element!.attributes['value']!;
 
-  // Busca el elemento que contiene la denominación del emisor
+  String cuit = cuit_element!.attributes['value']!;
   var denominacion_element = soup.find('textarea', id: 'taDenominacion');
   print(denominacion_element);
 
-  // Extrae el texto del elemento y lo guarda en otra variable
   String denominacion = denominacion_element!.text;
-
-  // Imprime los datos extraídos
-  print('CUIT: $cuit');
-  print('Denominación: $denominacion');
-  ;
+  print('CUIT         : $cuit');
+  print('Denominación : $denominacion');
 }
 
-averiguarCuit() async {
-// Define la URL del QR
-  String qrUrl = 'https://serviciosweb.afip.gob.ar/clavefiscal/qr/response.aspx?qr=7gbG0UVlv3codO6nHiw1iA,,';
+Future<void> traerHttp() async {
+  print("\n traerHttp \n");
+  String url = url2;
 
-// Hace una solicitud HTTP a la URL del QR y obtiene el código HTML de la página web
-  http.Response response = await http.get(Uri.parse(qrUrl));
+  http.Response response = await http.get(Uri.parse(url));
   String htmlCode = response.body;
-  print(htmlCode);
-// Crea un objeto html.Document para analizar el código HTML
-  final document = html.parse(htmlCode);
+  // print(htmlCode);
 
-// Busca el elemento que contiene el CUIT del emisor
+  final document = html.parse(htmlCode);
   final cuitElement = document.querySelector('input#tbCUIT');
 
-// Extrae el texto del elemento y lo guarda en una variable
   print(cuitElement);
   final cuit = cuitElement!.attributes['value'];
 
-// Busca el elemento que contiene la denominación del emisor
   final denominacionElement = document.querySelector('textarea#taDenominacion');
   print(denominacionElement);
 
-// Extrae el texto del elemento y lo guarda en otra variable
   String denominacion = denominacionElement!.text;
 
-// Imprime los datos extraídos
   print('CUIT: $cuit');
   print('Denominación: $denominacion');
 }
 
-Future<String> traerCuit(String cuit) async {
+Future<void> traerCuit(String cuit) async {
+  print("\n traerCuit \n");
+
   final url = Uri.parse("https://servicioscf.afip.gob.ar/publico/denuncias/denunciaCD.aspx/BuscarCUIT");
 
   final headers = {
@@ -84,24 +73,20 @@ Future<String> traerCuit(String cuit) async {
 
   final data = {"CUIT": cuit};
 
-  final response = await http.post(
-    url,
-    headers: headers,
-    body: json.encode(data),
-  );
+  final response = await http.post(url, headers: headers, body: json.encode(data));
 
   if (response.statusCode == 200) {
-    print("Response: ${response.body}");
-    return response.body;
+    // print("Response: ${response.body}");
   } else {
     print("Request failed with status: ${response.statusCode}");
-    return "** ERROR **";
   }
 }
 
-traer2() async {
+Future<void> traerHttp2() async {
+  print("\n traerHttp \n");
+
   final response = await http.get(
-    Uri.parse("https://serviciosweb.afip.gob.ar/clavefiscal/qr/response.aspx?qr=7gbG0UVlv3codO6nHiw1iA,,"),
+    Uri.parse(url2),
     headers: {
       "accept":
           "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
@@ -128,10 +113,8 @@ traer2() async {
   }
 }
 
-void traer1() async {
-  final url1 = 'http://qr.afip.gob.ar/?qr=7gbG0UVlv3codO6nHiw1iA,,';
-  final url2 = 'https://serviciosweb.afip.gob.ar/clavefiscal/qr/response.aspx?qr=7gbG0UVlv3codO6nHiw1iA,,';
-  final url3 = "https://servicioscf.afip.gob.ar/publico/denuncias/denunciaCD.aspx/BuscarCUIT";
+Future<void> traerHttp1() async {
+    print("\n traerHttp1 \n");
 
   // final url = Uri.parse(url3);
 
@@ -159,7 +142,9 @@ void traer1() async {
 }
 
 void main() async {
-  // await traer2();
-  // await averiguarCuit();
-  await probar();
+  await traerBS();
+  // await traerCuit(cuit);
+  // await traerHttp();
+  // await traerHttp1();
+  // await traerHttp2();
 }
