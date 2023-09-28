@@ -6,44 +6,54 @@ const qr = '7gbG0UVlv3codO6nHiw1iA,,';
 const cuit = '33501576269';
 
 void mostrar(Map<String, String> variables) {
-  print("\nHay ${variables.length} entradas");
+  print("    Hay ${variables.length} entradas");
   for (final k in variables.keys) {
     String v = variables[k] ?? "";
     if (v.length > 150) v = v.substring(0, 150);
-    print('◾ ${k.padRight(20)}: ${v}');
+    print('    ◾ ${k.padRight(20)}: ${v}');
   }
 }
 
 void main() async {
-  print("> BAJAR QR\n");
+  final client = http.Client();
   const urlAfip = 'serviciosweb.afip.gob.ar';
+  print("\n⭕ BAJAR QR $urlAfip\n");
   var url = Uri.https(urlAfip, '/clavefiscal/qr/response.aspx', {'qr': '7gbG0UVlv3codO6nHiw1iA,,'});
 
-  var response = await http.post(url);
+  var response = await client.get(url);
   var location = response.headers["location"] ?? "";
-  var cookie = response.headers["set-cookie"] ?? "";
-  var parametro = location.split("?")[1];
 
-  print("\n\nURL: $url");
-  print(
-      '\tResponse status: ${response.statusCode} \n\tlocation : $location \n\tparametro: $parametro \n\t: $cookie');
+  print('''
+
+🔹 URL: $url
+    status   : ${response.statusCode} 
+    location : $location 
+    ''');
   mostrar(response.headers);
 
   url = Uri.parse(location);
-  response = await http.get(url, headers: {'cookie': cookie});
+  response = await client.get(url);
   location = response.headers["location"] ?? "";
-  cookie = response.headers["set-cookie"] ?? "";
 
-  print("\n\nURL: $url");
-  print('\tResponse status: ${response.statusCode} \n\tlocation: $location');
+  print('''
+
+🔹 URL: $url
+    status   : ${response.statusCode} 
+    location : $location 
+    ''');
   mostrar(response.headers);
 
   url = Uri.https(urlAfip, location);
-  response = await http.post(url, headers: {'cookie': cookie});
+  // response = await client.post(url, headers: {'cookie': cookie});
+  response = await client.post(url);
   location = response.headers["location"] ?? "";
 
-  print("\n\nURL: $url");
-  print('\tResponse status: ${response.statusCode} \n\tlocation: $location');
+  print('''
+
+🔹 URL: $url
+    status   : ${response.statusCode} 
+    location : $location 
+    ''');
   mostrar(response.headers);
 
   print(response.body);
