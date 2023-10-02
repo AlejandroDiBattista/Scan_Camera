@@ -1,13 +1,12 @@
-require 'net/http'
+require 'httparty'
 require 'nokogiri'
 
 # Define la URL del QR
 qr_url = 'https://serviciosweb.afip.gob.ar/clavefiscal/qr/response.aspx?qr=7gbG0UVlv3codO6nHiw1iA,,'
 
 # Hace una solicitud HTTP a la URL del QR y obtiene el código HTML de la página web
-uri = URI(qr_url)
-response = Net::HTTP.get(uri)
-html = response.force_encoding('UTF-8')
+response = HTTParty.get(qr_url)
+html = response.body
 
 # Crea un objeto Nokogiri para analizar el código HTML
 doc = Nokogiri::HTML(html)
