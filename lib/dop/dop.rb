@@ -1,4 +1,14 @@
+class Object
+    def object?
+        is_a?(Hash)
+    end
+    def array?
+        is_a?(Array)
+    end
+end
+
 module DOP 
+    
     def claves(*camino)
         camino.flatten.map{|k| String === k ? k.to_sym : k }
     end
@@ -29,43 +39,42 @@ module DOP
     end
 
     def diff(a, b)
-        return diff_o(a, b) if a.is_a?(Hash)  && b.is_a?(Hash)  
-        return diff_a(a, b) if a.is_a?(Array) && b.is_a?(Array)
+        return diff_o(a, b) if a.object? && b.object?  
+        return diff_a(a, b) if a.array?  && b.array?
         return b if a != b
         return nil 
     end
 
     def diff_a(a, b)
         n = [a.length, b.length].max
-        s = b.clone
-        (0...n).each{|i| s[i] = a[i] == b[i] ? nil : b[i]}
-        s
-    end
-
-    def path(datos, salida=[])
-      datos.inject([]) do |acc, (k,v)|
-        acc.clone + if(v.is_a?(Hash))
-            path(v, salida.clone << k)
-        else
-            salida.clone << k   
-        end
-      end  
+        (0...n).map{|i| a[i] == b[i] ? nil : diff(a[i],b[i])}
     end
 
     def diff_o(a, b)
-        e = a.is_a?(Array) ? [] : {}
+        e = a.array? ? [] : {}
         return e if a == b 
 
         keys = (a.keys + b.keys).uniq
         keys.inject(e) do |acc, k|
             d = diff( get(a, k), get(b, k) )
-            if d.is_a?(Hash) && d.empty? || d.nil?
+            if d.object? && d.empty? || d.nil?
                 acc
             else
                 set(acc, [k], d)
             end
         end
     end
+    
+    def path(datos, salida=[])
+      datos.inject([]) do |acc, (k,v)|
+        acc + if(v.object?)
+            path(v, salida + [k])
+        else
+            [salida + [k]]   
+        end
+      end  
+    end
+
 end
 # -----------------------
 include DOP 

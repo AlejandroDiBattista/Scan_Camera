@@ -97,5 +97,18 @@ pp proximo
 pp traerCuenta(datos, 'n001')
 pp traerCuenta(datos, 'n002')
 
-pp d= diff( {a: 10, b: 20, d:[1, 2], e: {x: 10, y: 20}}, {a: 10, b: 22, c:5, d:[2, 2, 3], e: {x: 10, y: 22}})
+a = {a: 10, b: 20,      d:[{m: 1}, {m: 2, n: 3}],         e: {x: 10, y: {v: 10, w: 20}}}
+b = {a: 10, b: 22, c:5, d:[{m: 1}, {m: 2, n: 4}, {o: 3}], e: {x: 10, y: {v: 12, z: 30}}}
+puts 'Diferencia >> '
+pp d = diff( a, b)
+# --
+# pp [:b, :d, [[:e, :y, :v],[:e, :y, :z]], :c]
+# --
+
+puts "--------"
+pp a 
+pp b 
+puts ">"
+pp d 
+puts "--"
 pp path(d)
