@@ -112,3 +112,36 @@ puts ">"
 pp d 
 puts "--"
 pp path(d)
+
+module Sistema
+    @actual = {}
+
+    def get
+        @actual
+    end  
+
+    def set(valor)
+        @actual = valor 
+    end
+
+    # retorna nil si no pudo confirmar
+    def commit(anterior, siguiente)
+        if proximo = reconcile(actual, anterior, siguiente)
+            actual = proximo
+        end   
+    end
+
+    def reconcile(actual, anterior, siguiente)
+        return siguiente if actual == anterior
+
+        anterior_actual    = diff(anterior, actual)
+        anterior_siguiente = diff(anterior, siguiente)
+        if(sin_conflicto?(anterior_actual, anterior_siguiente))
+            actual.merge(anterior_siguiente)
+        end
+    end
+
+    def sin_conflicto?(a, b)
+        (path(a) & path(b)).empty?
+    end
+end

@@ -67,10 +67,12 @@ module DOP
     
     def path(datos, salida=[])
       datos.inject([]) do |acc, (k,v)|
-        acc + if(v.object?)
+        acc + if v.object? 
             path(v, salida + [k])
+        elsif v.array?
+            v.map.with_index{|a, i| a && salida + path(a, [k ,i]) }.compact.map(&:first)
         else
-            [salida + [k]]   
+            [salida + [k]]
         end
       end  
     end
@@ -119,3 +121,10 @@ end
 #   - destino
 #   - monto 
 
+# {:b=>22, :d=>[nil, {:n=>4}, {:o=>3}], :e=>{:y=>{:v=>12, :z=>30}}, :c=>5}
+# [[:b], [:d], [:e, :y, :v], [:e, :y, :z], [:c]]
+# 
+# [[:b], {:n=>4}, {:o=>3}, [:e, :y, :v], [:e, :y, :z], [:c]]
+# [[:b], [[:d, 1, :n]], [[:d, 2, :o]], [:e, :y, :v], [:e, :y, :z], [:c]]
+
+# [[:b], [:d, 1, :n], [:d, 2, :o], [:e, :y, :v], [:e, :y, :z], [:c]]
