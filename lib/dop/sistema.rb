@@ -1,6 +1,41 @@
 require './dop.rb' 
 require './datos.rb' 
 
+module Sistema
+    @actual = {}
+
+    def get
+        @actual
+    end  
+
+    def set(valor)
+        @actual = valor 
+    end
+
+    # retorna nil si no pudo confirmar
+    def commit(anterior, siguiente)
+        if proximo = reconcile(actual, anterior, siguiente)
+            actual = proximo
+        end   
+    end
+
+    def reconcile(actual, anterior, siguiente)
+        return siguiente if actual == anterior
+
+        anterior_actual    = diff(anterior, actual)
+        anterior_siguiente = diff(anterior, siguiente)
+        if(sin_conflicto?(anterior_actual, anterior_siguiente))
+            actual.merge(anterior_siguiente)
+        end
+    end
+
+    def sin_conflicto?(a, b)
+        (path(a) & path(b)).empty?
+    end
+end
+
+
+
 datos = datosDemo() 
 
 # crearUsuario(datos, dni, nombre)
@@ -72,76 +107,4 @@ def saldo(datos, usuario)
         total += has(e, :origen) ? monto : -monto
     end 
     total 
-end
-
-# puts "TraerCuenta: "
-# puts traerCuenta(datos, "u0")
-puts '--------'
-puts saldo(datos, 'u000')
-
-puts '--------'
-pp(datos = acreditar(datos, 'n001', 'u000', 123))
-puts saldo(datos, 'u000')
-
-puts '--------'
-pp(datos = debitar(datos, 'n001', 'u000', 1000))
-puts saldo(datos, 'u000')
-
-puts next_key(get(datos, :cuentas ))
-puts next_key(get(datos, :usuarios))
-puts next_key(get(datos, :negocios))
-
-proximo = acreditar(datos, 'n001', 'u001', 999)
-pp proximo
-
-pp traerCuenta(datos, 'n001')
-pp traerCuenta(datos, 'n002')
-
-a = {a: 10, b: 20,      d:[{m: 1}, {m: 2, n: 3}],         e: {x: 10, y: {v: 10, w: 20}}}
-b = {a: 10, b: 22, c:5, d:[{m: 1}, {m: 2, n: 4}, {o: 3}], e: {x: 10, y: {v: 12, z: 30}}}
-puts 'Diferencia >> '
-pp d = diff( a, b)
-# --
-# pp [:b, :d, [[:e, :y, :v],[:e, :y, :z]], :c]
-# --
-
-puts "--------"
-pp a 
-pp b 
-puts ">"
-pp d 
-puts "--"
-pp path(d)
-
-module Sistema
-    @actual = {}
-
-    def get
-        @actual
-    end  
-
-    def set(valor)
-        @actual = valor 
-    end
-
-    # retorna nil si no pudo confirmar
-    def commit(anterior, siguiente)
-        if proximo = reconcile(actual, anterior, siguiente)
-            actual = proximo
-        end   
-    end
-
-    def reconcile(actual, anterior, siguiente)
-        return siguiente if actual == anterior
-
-        anterior_actual    = diff(anterior, actual)
-        anterior_siguiente = diff(anterior, siguiente)
-        if(sin_conflicto?(anterior_actual, anterior_siguiente))
-            actual.merge(anterior_siguiente)
-        end
-    end
-
-    def sin_conflicto?(a, b)
-        (path(a) & path(b)).empty?
-    end
 end

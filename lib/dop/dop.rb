@@ -2,9 +2,48 @@ class Object
     def object?
         is_a?(Hash)
     end
+
     def array?
         is_a?(Array)
     end
+end
+
+class Array
+
+    def get(index)
+        return nil if index >= self.size 
+        self[index]
+    end
+
+    def set(index, value)
+        push(nil) while index > size 
+
+        return push(value) if index == size 
+        self[index] = value
+    end
+
+    def keys 
+        (0...size).map{|i|i}
+    end
+
+    def next_key 
+        self.size
+    end  
+
+end
+
+class Hash
+    def get(key)
+      self[key.to_sym]  
+    end 
+
+    def set(key, value)
+      self[key.to_sym] = value   
+    end
+
+    def next_key 
+        keys.sort.last.to_s.succ.to_sym
+    end  
 end
 
 module DOP 
@@ -18,14 +57,15 @@ module DOP
     end
 
     def get(data, *camino)
-        claves(camino).reduce(data){|d, k| d[k] }
+        claves(camino).reduce(data){|d, k| d.get(k) }
     end
 
     def set(datos, *camino, valor)
         return datos if get(datos, camino) == valor 
 
         clave, *resto = claves(camino)
-        datos.clone.tap{|nuevo| nuevo[clave] = resto.empty? ? valor : set(datos[clave], resto, valor) }
+         
+        datos.clone.tap{|nuevo| nuevo.set(clave, resto.empty? ? valor : set(nuevo.get(clave), resto, valor)) }
     end
 
     def has(datos, *camino)
@@ -47,7 +87,7 @@ module DOP
 
     def diff_a(a, b)
         n = [a.length, b.length].max
-        (0...n).map{|i| a[i] == b[i] ? nil : diff(a[i],b[i])}
+        (0...n).map{|i| a[i] == b[i] ? nil : diff(a[i], b[i])}
     end
 
     def diff_o(a, b)
@@ -77,26 +117,16 @@ module DOP
       end  
     end
 
+    def merge(a,b)
+      b.inject(a){|data, (k,v)| set(data, k, v) }
+    end
 end
+
+
+
 # -----------------------
 include DOP 
 
-def probar_get_set(datos)
-    puts 'test_get_set'
-
-    puts '- get -'
-    puts anterior = get(datos, [:usuarios, :u0, :dni])
-
-    puts '- set = -'
-    aux1 = set(datos, :usuarios, :u0, :dni, anterior)
-    puts get(aux1, [:usuarios, :u0, :dni])
-    puts datos == aux1
-    puts '- set != -'
-
-    aux2 = set(datos, :usuarios, :u0, :dni, '1800000x')
-    puts get(aux2, [:usuarios, :u0, :dni])
-    puts datos == aux2
-end 
 
 # probar_get_set(datos)
 # Clases
@@ -128,3 +158,32 @@ end
 # [[:b], [[:d, 1, :n]], [[:d, 2, :o]], [:e, :y, :v], [:e, :y, :z], [:c]]
 
 # [[:b], [:d, 1, :n], [:d, 2, :o], [:e, :y, :v], [:e, :y, :z], [:c]]
+# 
+#
+#
+def probar_diferencia
+    a = {a: 10, b: 20,      d:[{m: 1}, {m: 2, n: 3}],         e: {x: 10, y: {v: 10, w: 20}}}
+    b = {a: 10, b: 22, c:5, d:[{m: 1}, {m: 2, n: 4}, {o: 3}], e: {x: 10, y: {v: 12, z: 30}}}
+    puts 'Diferencia >> '
+    pp d = diff(a, b)
+    # --
+    # pp [:b, :d, [[:e, :y, :v],[:e, :y, :z]], :c]
+    # --
+
+    puts "--------"
+    puts " > A "
+    pp a 
+    puts " > B "
+    pp b 
+    puts " A <=> B"
+    pp d 
+    puts "--"
+    pp path(d)
+
+    puts "Merge"
+
+    pp merge(a, d)
+end
+
+
+probar_diferencia
