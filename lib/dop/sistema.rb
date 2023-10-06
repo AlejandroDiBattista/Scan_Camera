@@ -12,11 +12,10 @@ module Sistema
         @actual = valor 
     end
 
-    # retorna nil si no pudo confirmar
     def commit(anterior, siguiente)
         if proximo = reconcile(actual, anterior, siguiente)
             actual = proximo
-        end   
+        end
     end
 
     def reconcile(actual, anterior, siguiente)
@@ -24,8 +23,9 @@ module Sistema
 
         anterior_actual    = diff(anterior, actual)
         anterior_siguiente = diff(anterior, siguiente)
+
         if(sin_conflicto?(anterior_actual, anterior_siguiente))
-            actual.merge(anterior_siguiente)
+            merge(actual, anterior_siguiente)
         end
     end
 
@@ -33,8 +33,6 @@ module Sistema
         (path(a) & path(b)).empty?
     end
 end
-
-
 
 datos = datosDemo() 
 
