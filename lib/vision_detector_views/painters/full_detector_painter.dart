@@ -60,8 +60,10 @@ class FullDetectorPainter extends CustomPainter {
   void paintText(Canvas canvas) {
     if (recognizedText == null) return;
 
+    var i = 0;
     for (final textBlock in recognizedText!.blocks) {
-      dibujarTexto(canvas, textBlock.text, textBlock.boundingBox);
+      i++;
+      dibujarTexto(canvas, "$i ${textBlock.text}", textBlock.boundingBox);
       dibujarPoints(canvas, textBlock.cornerPoints, true);
     }
   }

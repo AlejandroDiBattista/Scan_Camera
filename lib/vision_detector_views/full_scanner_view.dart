@@ -1,11 +1,12 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
-import 'package:google_ml_kit_example/modelo/cliente.dart';
 
 import 'painters/full_detector_painter.dart';
 import 'detector_view.dart';
+// import '../modelo/cliente.dart';
 import '../modelo/usuario.dart';
+import 'package:flutter/services.dart';
 
 class FullScannerView extends StatefulWidget {
   @override
@@ -70,11 +71,11 @@ class _FullScannerViewState extends State<FullScannerView> {
       for (final barcode in barcodes) {
         print('- |${barcode.rawValue}| ${barcode.format}\n');
         if (barcode.format == BarcodeFormat.qrCode && barcode.rawValue != null) {
-          final c = await Cliente.cargar(barcode.rawValue!);
-          if (c != null) {
-            print('CLIENTE >>');
-            print('- $c');
-          }
+          // final c = await Cliente.cargar(barcode.rawValue!);
+          // if (c != null) {
+          //   print('CLIENTE >>');
+          //   print('- $c');
+          // }
         }
         if (barcode.format == BarcodeFormat.pdf417 && barcode.rawValue != null) {
           final u = Usuario.cargar(barcode.rawValue!);
@@ -85,11 +86,20 @@ class _FullScannerViewState extends State<FullScannerView> {
         }
       }
     }
-
   }
 
   Future<void> _processTextImage(InputImage inputImage) async {
     recognizedText = await _textRecognizer.processImage(inputImage);
+    var texto = "";
+    for (final textBlock in recognizedText!.blocks) {
+      texto = texto + textBlock.text + "\n";
+      // dibujarTexto(canvas, "$i ${textBlock.text}", textBlock.boundingBox);
+      // dibujarPoints(canvas, textBlock.cornerPoints, true);
+    }
+    if (texto.contains("TOTAL")) {
+      Clipboard.setData(ClipboardData(text: texto));
+      print(texto);
+    }
   }
 
   Future<void> _processFace(InputImage inputImage) async {
