@@ -99,10 +99,18 @@ end
 def saldo(datos, usuario)
     n = traerCuenta(datos, usuario)
     m = get(datos, :cuentas, n, :movimientos)
-    total = 0
-    for e in m 
-        monto = get(e, :monto)
-        total += has(e, :origen) ? monto : -monto
-    end 
-    total 
+
+    # m.select{|e|has(e,:origen)}.sum{|e|get(e,:monto)} -
+    # m.select{|e|has(e,:destino)}.sum{|e|get(e,:monto)}   
+
+    m.map{|e| (has(e,:origen) ? +1 : -1) * get(e, :monto)}.sum
+    # m.inject(0) do |total,e|
+    #     total + (has(e, :origen) ? +1 : -1 ) * get(e, :monto)
+    # end
+    # total = 0
+    # for e in m 
+    #     monto = get(e, :monto)
+    #     total += has(e, :origen) ? monto : -monto
+    # end 
+    # total 
 end
